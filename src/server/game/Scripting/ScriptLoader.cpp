@@ -28,7 +28,7 @@ void AddSC_DuelReset();
 void AddSC_fast_arena_start();
 
 // Customs
-void AddSC_customized_ability_system();
+// void AddSC_customized_ability_system();
 void AddSC_event_april();
 
 // spells
@@ -1722,6 +1722,6 @@ void AddCustomScripts()
 {
 #ifdef SCRIPTS
     AddSC_event_april();
-    AddSC_customized_ability_system();
+    //AddSC_customized_ability_system();
 #endif
 }
