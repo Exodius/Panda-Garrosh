@@ -652,7 +652,7 @@ void Channel::Announce(uint64 p)
         UpdateChannelInDB();
     }
 }
-
+/*
 void Channel::Say(uint64 p, const char *what, uint32 lang)
 {
     if (!what)
@@ -684,6 +684,41 @@ void Channel::Say(uint64 p, const char *what, uint32 lang)
         player->BuildPlayerChat(&data, CHAT_MSG_CHANNEL, what, lang, NULL, m_name);
         SendToAll(&data, !players[p].IsModerator() ? p : false);
     }
+}
+*/
+
+void Channel::Say(ObjectGuid guid, std::string const& what, uint32 lang)
+{
+    if (what.empty())
+        return;
+
+    // TODO: Add proper RBAC check
+    if (sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_CHANNEL))
+        lang = LANG_UNIVERSAL;
+
+    if (!IsOn(guid))
+    {
+        WorldPacket data;
+        MakeNotMember(&data);
+        SendToOne(&data, guid);
+        return;
+    }
+
+    if (playersStore[guid].IsMuted())
+    {
+        WorldPacket data;
+        MakeMuted(&data);
+        SendToOne(&data, guid);
+        return;
+    }
+
+    WorldPacket data;
+    if (Player* player = ObjectAccessor::FindConnectedPlayer(guid))
+        ChatHandler::BuildChatPacket(data, CHAT_MSG_CHANNEL, Language(lang), player, player, what, 0, _name);
+    else
+        ChatHandler::BuildChatPacket(data, CHAT_MSG_CHANNEL, Language(lang), guid, guid, what, 0, "", "", 0, false, _name);
+
+    SendToAll(&data, !playersStore[guid].IsModerator() ? guid : ObjectGuid::Empty);
 }
 
 void Channel::Invite(uint64 p, const char *newname)
